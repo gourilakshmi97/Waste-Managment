@@ -1,0 +1,62 @@
+.profile-container {
+  padding: 20px;
+}
+
+.profile-box {
+  max-width: 900px;
+  margin: auto;
+}
+
+.user-info {
+  background-color: white;
+
+  padding: 20px;
+
+  border-radius: 10px;
+
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+
+  margin-bottom: 20px;
+}
+
+.user-info h1 {
+  margin-bottom: 20px;
+}
+
+.user-info p {
+  font-size: 18px;
+}
+
+.edit-btn {
+  margin-top: 15px;
+
+  padding: 10px 20px;
+
+  background-color: green;
+  color: white;
+
+  border: none;
+  border-radius: 5px;
+
+  cursor: pointer;
+}
+
+.history-box {
+  background-color: white;
+
+  padding: 20px;
+
+  border-radius: 10px;
+
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+}
+
+.complaint-item {
+  border-bottom: 1px solid #ccc;
+
+  padding: 10px 0;
+}
+
+.complaint-item:last-child {
+  border-bottom: none;
+}
