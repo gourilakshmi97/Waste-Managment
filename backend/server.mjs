@@ -22,7 +22,10 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
+
+    if (!origin) {
+      return callback(null, true);
+    }
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
@@ -30,6 +33,7 @@ app.use(cors({
 
     return callback(new Error("CORS blocked"));
   },
+
   credentials: true,
 }));
 
@@ -47,8 +51,10 @@ const PORT = process.env.PORT || 8080;
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    app.listen(PORT, () => {
+
+    app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on ${PORT}`);
     });
+
   })
   .catch(err => console.error(err));
