@@ -1,0 +1,13 @@
+.home-container {
+padding: 30px;
+}
+.home-container h1 {
+text-align: center;
+color: #1b5e20;
+}
+.complaint-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit,minmax(300px,1fr));
+gap: 20px;
+margin-top: 30px;
+}

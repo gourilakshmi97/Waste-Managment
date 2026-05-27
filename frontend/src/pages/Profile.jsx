@@ -1,113 +1,193 @@
+import { useEffect, useState } from "react";
+
+import {
+  Container,
+  Typography,
+  Box,
+  Paper,
+  Avatar,
+  Divider,
+  CircularProgress,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+} from "@mui/material";
+
+import EmailIcon from "@mui/icons-material/Email";
+import PhoneIcon from "@mui/icons-material/Phone";
+import HomeIcon from "@mui/icons-material/Home";
+import BadgeIcon from "@mui/icons-material/Badge";
+
+import API from "../services/api";
 import Navbar from "../components/Navbar";
 
-import complaints from "../data/complaints";
-
-import "../styles/Profile.css";
-
 function Profile() {
+  const [user, setUser] = useState(null);
 
-  // Dummy user data
+  const [loading, setLoading] = useState(true);
 
-  const user = {
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
 
-    name: "Arun Kumar",
+        const res = await API.get("/users/profile", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
 
-    email: "arun@gmail.com",
+        setUser(res.data);
 
-    phone: "9876543210",
+      } catch (err) {
 
-    address: "Kochi, Kerala",
+        console.error("Profile fetch error:", err);
 
-  };
+      } finally {
+
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+
+  }, []);
+
+  // LOADING
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          mt: 10,
+        }}
+      >
+        <CircularProgress color="success" />
+      </Box>
+    );
+  }
+
+  // NO USER
+  if (!user) {
+    return (
+      <Typography align="center" sx={{ mt: 10 }}>
+        Profile not found.
+      </Typography>
+    );
+  }
 
   return (
-    <div>
-
+    <>
       <Navbar />
 
-      <div className="profile-container">
+      <Box
+        sx={{
+          minHeight: "100vh",
+          background:
+            "linear-gradient(to bottom,rgb(240,253,244),rgb(220,252,231))",
+          py: 6,
+        }}
+      >
+        <Container maxWidth="sm">
 
-        <div className="profile-box">
+          <Paper
+            elevation={6}
+            sx={{
+              p: 5,
+              borderRadius: 5,
+              textAlign: "center",
+            }}
+          >
 
-          {/* User Info */}
+            {/* AVATAR */}
+            <Avatar
+              sx={{
+                width: 90,
+                height: 90,
+                bgcolor: "#2e7d32",
+                mx: "auto",
+                mb: 2,
+                fontSize: 36,
+                fontWeight: "bold",
+              }}
+            >
+              {user.name?.charAt(0).toUpperCase()}
+            </Avatar>
 
-          <div className="user-info">
-
-            <h1>
-              User Profile
-            </h1>
-
-            <p>
-              <strong>Name:</strong>
+            {/* NAME */}
+            <Typography
+              variant="h4"
+              fontWeight="bold"
+              color="#1b5e20"
+            >
               {user.name}
-            </p>
+            </Typography>
 
-            <p>
-              <strong>Email:</strong>
-              {user.email}
-            </p>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ mb: 3 }}
+            >
+              EcoClean Citizen Profile
+            </Typography>
 
-            <p>
-              <strong>Phone:</strong>
-              {user.phone}
-            </p>
+            <Divider sx={{ mb: 3 }} />
 
-            <p>
-              <strong>Address:</strong>
-              {user.address}
-            </p>
+            {/* DETAILS */}
+            <List>
 
-            <p>
-              <strong>Total Complaints:</strong>
-              {complaints.length}
-            </p>
+              <ListItem>
+                <ListItemIcon>
+                  <EmailIcon color="success" />
+                </ListItemIcon>
 
-            <button className="edit-btn">
-              Edit Profile
-            </button>
+                <ListItemText
+                  primary="Email"
+                  secondary={user.email || "Not Added"}
+                />
+              </ListItem>
 
-          </div>
+              <ListItem>
+                <ListItemIcon>
+                  <PhoneIcon color="success" />
+                </ListItemIcon>
 
-          {/* Complaint History */}
+                <ListItemText
+                  primary="Phone"
+                  secondary={user.phone || "Not Added"}
+                />
+              </ListItem>
 
-          <div className="history-box">
+              <ListItem>
+                <ListItemIcon>
+                  <HomeIcon color="success" />
+                </ListItemIcon>
 
-            <h2>
-              Complaint History
-            </h2>
+                <ListItemText
+                  primary="Address"
+                  secondary={user.address || "Not Added"}
+                />
+              </ListItem>
 
-            {complaints.map((item) => (
+              <ListItem>
+                <ListItemIcon>
+                  <BadgeIcon color="success" />
+                </ListItemIcon>
 
-              <div
-                key={item.id}
+                <ListItemText
+                  primary="Role"
+                  secondary={user.role || "User"}
+                />
+              </ListItem>
 
-                className="complaint-item"
-              >
+            </List>
 
-                <h3>
-                  {item.location}
-                </h3>
+          </Paper>
 
-                <p>
-                  {item.description}
-                </p>
-
-                <p>
-                  Status:
-                  {item.status}
-                </p>
-
-              </div>
-
-            ))}
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
+        </Container>
+      </Box>
+    </>
   );
 }
 

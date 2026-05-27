@@ -1,96 +1,86 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-
 import Home from "./pages/Home";
-
 import ReportIssue from "./pages/ReportIssue";
-
-import ComplaintList from "./pages/ComplaintList";
-
-import ComplaintDetails from "./pages/ComplaintDetails";
-
+import ComplaintsPage from "./pages/ComplaintsPage";
 import Profile from "./pages/Profile";
+import ComplaintDetails from "./pages/ComplaintDetails";
+import WorkerDashboard from "./pages/worker/WorkerDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 
-import ProtectedRoute from "./components/ProtectedRoute";
+function ProtectedRoute({ children, allowedRoles }) {
+  const token = localStorage.getItem("token");
+
+  if (!token) return <Navigate to="/login" replace />;
+
+  let userRole = localStorage.getItem("userRole");
+
+  if (!userRole) {
+    const savedUser = JSON.parse(localStorage.getItem("user"));
+    userRole = savedUser?.role;
+  }
+
+  const currentRole = (userRole || "").toLowerCase();
+
+  const roles = allowedRoles.map(r => r.toLowerCase());
+
+  if (!roles.includes(currentRole)) {
+    return <Navigate to="/home" replace />;
+  }
+
+  return children;
+}
 
 function App() {
-
   return (
-    <BrowserRouter>
+    <Routes>
 
-      <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
 
-        {/* Public Routes */}
+      <Route path="/home" element={
+        <ProtectedRoute allowedRoles={["user", "admin", "worker"]}>
+          <Home />
+        </ProtectedRoute>
+      } />
 
-        <Route
-          path="/"
+      <Route path="/report-issue" element={
+        <ProtectedRoute allowedRoles={["user"]}>
+          <ReportIssue />
+        </ProtectedRoute>
+      } />
 
-          element={<Login />}
-        />
+      <Route path="/complaints" element={
+        <ProtectedRoute allowedRoles={["user"]}>
+          <ComplaintsPage />
+        </ProtectedRoute>
+      } />
 
-        <Route
-          path="/signup"
+      <Route path="/profile" element={
+        <ProtectedRoute allowedRoles={["user"]}>
+          <Profile />
+        </ProtectedRoute>
+      } />
 
-          element={<Signup />}
-        />
+      <Route path="/worker" element={
+        <ProtectedRoute allowedRoles={["worker"]}>
+          <WorkerDashboard />
+        </ProtectedRoute>
+      } />
 
-        {/* Protected Routes */}
+      <Route path="/admin" element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminDashboard />
+        </ProtectedRoute>
+      } />
 
-        <Route
-          path="/home"
+      <Route path="/complaint/:id" element={<ComplaintDetails />} />
 
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
+      <Route path="*" element={<Navigate to="/login" replace />} />
 
-        <Route
-          path="/report"
-
-          element={
-            <ProtectedRoute>
-              <ReportIssue />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/complaints"
-
-          element={
-            <ProtectedRoute>
-              <ComplaintList />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/complaint/:id"
-
-          element={
-            <ProtectedRoute>
-              <ComplaintDetails />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/profile"
-
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-
-      </Routes>
-
-    </BrowserRouter>
+    </Routes>
   );
 }
 

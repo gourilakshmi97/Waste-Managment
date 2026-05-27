@@ -1,60 +1,127 @@
 body {
+
   margin: 0;
+
   font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
+
+  background:
+    linear-gradient(
+      to right,
+      #dcedc8,
+      #a5d6a7
+    );
 }
 
-.signup-container {
+.auth-container {
+
+  height: 100vh;
+
   display: flex;
+
   justify-content: center;
+
   align-items: center;
-  min-height: 100vh;
-  padding: 20px;
 }
 
-.signup-box {
-  background-color: white;
-  padding: 30px;
-  width: 400px;
-  border-radius: 10px;
-  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+.auth-box {
+
+  width: 380px;
+
+  background: white;
+
+  padding: 35px;
+
+  border-radius: 25px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 18px;
+
+  box-shadow:
+    0 5px 20px rgba(0,0,0,0.2);
 }
 
-.signup-box h1 {
+.auth-box h1 {
+
   text-align: center;
-  margin-bottom: 20px;
+
+  color: #1b5e20;
+
+  margin-bottom: 10px;
 }
 
-.signup-box input,
-.signup-box textarea {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  border: 1px solid gray;
-  border-radius: 5px;
+.auth-box input {
+
+  padding: 14px;
+
+  border-radius: 12px;
+
+  border: 1px solid #ccc;
+
+  outline: none;
+
+  font-size: 15px;
 }
 
-.signup-box button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 20px;
-  background-color: green;
+.auth-box input:focus {
+
+  border: 1px solid #2e7d32;
+}
+
+.auth-box button {
+
+  background: #2e7d32;
+
   color: white;
+
   border: none;
-  border-radius: 5px;
+
+  padding: 14px;
+
+  border-radius: 12px;
+
   cursor: pointer;
+
+  font-size: 16px;
+
+  transition: 0.3s;
 }
 
-.signup-box button:hover {
-  background-color: darkgreen;
+.auth-box button:hover {
+
+  background: #1b5e20;
 }
 
-.error {
-  color: red;
+.auth-box span {
+
+  text-align: center;
+
   font-size: 14px;
 }
 
-.login-link {
-  margin-top: 15px;
-  text-align: center;
+.auth-box a {
+
+  color: #1b5e20;
+
+  margin-left: 5px;
+
+  text-decoration: none;
+
+  font-weight: bold;
+}
+
+.auth-box a:hover {
+
+  text-decoration: underline;
+}
+
+.auth-box p {
+
+  color: red;
+
+  margin: 0;
+
+  font-size: 13px;
 }

@@ -1,109 +1,117 @@
 import express from "express";
 
 import Task from "../models/Task.js";
-import Complaint from "../models/Complaint.js";
+import Complaint from "../models/Complaint.mjs";
+import User from "../models/User.js";
 
-import protect from "../middleware/authMiddleware.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 
-// ASSIGN TASK TO WORKER
-router.post("/assign", protect, async (req, res) => {
+// ================= ASSIGN TASK =================
+router.post(
+  "/assign",
+  authMiddleware,
+  async (req, res) => {
 
-  try {
+    try {
 
-    const {
-      complaintId,
-      workerId
-    } = req.body;
+      const {
+        complaintId,
+        workerId,
+      } = req.body;
 
+      // VALIDATION
+      if (!complaintId || !workerId) {
 
-    // CREATE TASK
-    const task = await Task.create({
-      complaintId,
-      workerId,
-      assignedBy: req.user._id
-    });
-
-
-    // UPDATE COMPLAINT
-    await Complaint.findByIdAndUpdate(
-      complaintId,
-      {
-        assignedWorker: workerId,
-        status: "In Progress"
+        return res.status(400).json({
+          message:
+            "complaintId and workerId required",
+        });
       }
-    );
 
+      // FIND WORKER
+      const worker =
+        await User.findById(workerId);
 
-    res.status(201).json({
-      message: "Task assigned successfully",
-      task
-    });
+      if (!worker) {
 
-  } catch (error) {
+        return res.status(404).json({
+          message: "Worker not found",
+        });
+      }
 
-    res.status(500).json({
-      message: error.message
-    });
+      // CREATE TASK
+      const task = await Task.create({
 
+        complaint: complaintId,
+
+        worker: workerId,
+
+        assignedBy: req.user.id,
+
+        status: "Assigned",
+      });
+
+      // UPDATE COMPLAINT
+      const updatedComplaint =
+        await Complaint.findByIdAndUpdate(
+          complaintId,
+          {
+            $set: {
+              assignedWorker:
+                worker.name,
+
+              status:
+                "In Progress",
+            },
+          },
+          { new: true }
+        );
+
+      console.log(
+        "Updated Complaint:",
+        updatedComplaint
+      );
+
+      res.status(201).json(task);
+
+    } catch (err) {
+
+      console.error(err);
+
+      res.status(500).json({
+        message: err.message,
+      });
+    }
   }
+);
 
-});
 
+// ================= GET WORKER TASKS =================
+router.get(
+  "/my-tasks",
+  authMiddleware,
+  async (req, res) => {
 
-// GET MY TASKS (WORKER)
-router.get("/mytasks", protect, async (req, res) => {
+    try {
 
-  try {
+      const tasks = await Task.find({
+        worker: req.user.id,
+      }).populate("complaint");
 
-    const tasks = await Task.find({
-      workerId: req.user._id
-    })
-    .populate("complaintId")
-    .populate("workerId");
+      res.status(200).json(tasks);
 
-    res.json(tasks);
+    } catch (err) {
 
-  } catch (error) {
+      console.error(err);
 
-    res.status(500).json({
-      message: error.message
-    });
-
+      res.status(500).json({
+        message: err.message,
+      });
+    }
   }
-
-});
-
-
-// UPDATE TASK STATUS
-router.put("/status/:id", protect, async (req, res) => {
-
-  try {
-
-    const {
-      status
-    } = req.body;
-
-
-    const task = await Task.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-
-
-    res.json(task);
-
-  } catch (error) {
-
-    res.status(500).json({
-      message: error.message
-    });
-
-  }
-
-});
+);
 
 export default router;

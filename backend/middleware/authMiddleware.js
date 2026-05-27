@@ -1,44 +1,51 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
 
-const protect = async (req, res, next) => {
+const authMiddleware = (req, res, next) => {
 
-  let token;
+  try {
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
+    const authHeader = req.headers.authorization;
 
-    try {
+    // CHECK HEADER
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
 
-      token = req.headers.authorization.split(" ")[1];
+      console.log("DEBUG: Auth header missing or malformed");
 
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET
-      );
-
-      req.user = await User.findById(decoded.id).select("-password");
-
-      next();
-
-    } catch (error) {
-
-      res.status(401).json({
-        message: "Not authorized"
+      return res.status(401).json({
+        message: "No token, authorization denied",
       });
-
     }
 
-  }
+    // EXTRACT TOKEN
+    const token = authHeader.split(" ")[1];
 
-  if (!token) {
-    res.status(401).json({
-      message: "No token provided"
+    // VERIFY TOKEN
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "secret"
+    );
+
+    console.log(
+      "DECODED PAYLOAD STRUCTURE:",
+      JSON.stringify(decoded, null, 2)
+    );
+
+    // STORE USER DATA
+    req.user = decoded;
+
+    next();
+
+  } catch (error) {
+
+    console.error(
+      "DEBUG: JWT Verification Failed:",
+      error.message
+    );
+
+    return res.status(401).json({
+      message: "Token is not valid",
     });
   }
-
 };
 
-export default protect;
+export default authMiddleware;

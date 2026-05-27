@@ -1,22 +1,49 @@
 import { Navigate } from "react-router-dom";
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({
+  children,
+  allowedRoles = []
+}) {
 
-  // Get token
+  // GET TOKEN
+  const token = localStorage.getItem("token");
 
-  const token = localStorage.getItem(
-    "token"
-  );
+  // SAFE USER PARSE
+  let user = null;
 
-  // If token not found
-
-  if (!token) {
-
-    return <Navigate to="/" />;
+  try {
+    user = JSON.parse(localStorage.getItem("user"));
+  } catch (error) {
+    console.error("Corrupted localStorage user object");
+    localStorage.clear();
   }
 
-  // If token exists
+  // NOT LOGGED IN
+  if (!token || !user) {
+    return <Navigate to="/login" replace />;
+  }
 
+  // ROLE PROTECTION
+  if (
+    allowedRoles.length > 0 &&
+    !allowedRoles.includes(user.role)
+  ) {
+
+    // REDIRECT BASED ON ROLE
+    switch (user.role) {
+
+      case "Admin":
+        return <Navigate to="/admin" replace />;
+
+      case "Worker":
+        return <Navigate to="/worker" replace />;
+
+      default:
+        return <Navigate to="/home" replace />;
+    }
+  }
+
+  // ACCESS GRANTED
   return children;
 }
 

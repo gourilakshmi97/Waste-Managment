@@ -1,53 +1,176 @@
-import { Link } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Button,
+  Box,
+  Chip
+} from "@mui/material";
 
-import "../styles/ComplaintCard.css";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { useNavigate } from "react-router-dom";
 
-function ComplaintCard({ complaint }) {
+export default function ComplaintCard({ complaint }) {
+  const navigate = useNavigate();
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Resolved":
+        return "success";
+      case "In Progress":
+        return "warning";
+      default:
+        return "default";
+    }
+  };
 
   return (
-    <div className="card">
+    <Card
+      sx={{
+        width: "100%",
+        height: "100%",
+        minHeight: 450,
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 5,
+        overflow: "hidden",
+        boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+        transition: "0.3s ease",
+        border: "1px solid #e2e8f0",
 
-      <img
-        src={complaint.image}
-        alt="Garbage"
+        "&:hover": {
+          transform: "translateY(-6px)",
+          boxShadow: "0 12px 30px rgba(16,185,129,0.25)"
+        }
+      }}
+    >
+      {/* IMAGE */}
+      <CardMedia
+        component="img"
+        image={
+          complaint.image ||
+          "https://via.placeholder.com/400x220?text=No+Image"
+        }
+        alt="Complaint"
+        sx={{
+          height: 220,
+          objectFit: "cover"
+        }}
       />
 
-      <div className="card-content">
-
-        <h3>
-          {complaint.location}
-        </h3>
-
-        <p>
-          {complaint.description}
-        </p>
-
-        <p className="status">
-          Status: {complaint.status}
-        </p>
-
-        <Link to={`/complaint/${complaint._id}`}>
-
-          <button
-            style={{
-              marginTop: "10px",
-              padding: "8px 15px",
-              backgroundColor: "green",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
+      {/* CONTENT */}
+      <CardContent
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          p: 3
+        }}
+      >
+        <Box>
+          {/* TITLE */}
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            sx={{
+              mb: 1,
+              color: "#0f172a"
             }}
           >
-            View Details
-          </button>
+            {complaint.title}
+          </Typography>
 
-        </Link>
+          {/* DESCRIPTION */}
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              mb: 3,
+              lineHeight: 1.7,
+              minHeight: 70
+            }}
+          >
+            {complaint.description?.length > 120
+              ? complaint.description.substring(0, 120) + "..."
+              : complaint.description}
+          </Typography>
+        </Box>
 
-      </div>
+        {/* LOCATION + STATUS */}
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          gap={1}
+          sx={{ mb: 2 }}
+        >
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={0.5}
+            sx={{
+              flex: 1,
+              overflow: "hidden"
+            }}
+          >
+            <LocationOnIcon
+              sx={{
+                fontSize: 18,
+                color: "#10b981"
+              }}
+            />
 
-    </div>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap"
+              }}
+            >
+              {complaint.location}
+            </Typography>
+          </Box>
+
+          <Chip
+            label={complaint.status || "Pending"}
+            color={getStatusColor(complaint.status)}
+            size="small"
+            sx={{
+              fontWeight: "bold",
+              borderRadius: "8px"
+            }}
+          />
+        </Box>
+
+        {/* BUTTON */}
+        <Button
+          fullWidth
+          variant="contained"
+          endIcon={<ArrowForwardIcon />}
+          onClick={() => navigate(`/complaint/${complaint._id}`)}
+          sx={{
+            mt: 1,
+            py: 1.3,
+            borderRadius: "12px",
+            fontWeight: "bold",
+            textTransform: "none",
+            background:
+              "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+
+            "&:hover": {
+              background:
+                "linear-gradient(135deg, #047857 0%, #059669 100%)"
+            }
+          }}
+        >
+          View Details
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
-
-export default ComplaintCard;

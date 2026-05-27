@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema(
   {
-    complaintId: {
+    complaint: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Complaint",
       required: true,
     },
 
-    workerId: {
+    worker: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -17,12 +17,22 @@ const taskSchema = new mongoose.Schema(
     assignedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
 
     status: {
       type: String,
-      enum: ["Assigned", "In Progress", "Completed"],
+      enum: [
+        "Assigned",
+        "In Progress",
+        "Completed",
+      ],
       default: "Assigned",
+    },
+
+    completionImage: {
+      type: String,
+      default: "",
     },
   },
   {
@@ -30,6 +40,7 @@ const taskSchema = new mongoose.Schema(
   }
 );
 
-const Task = mongoose.model("Task", taskSchema);
-
-export default Task;
+export default mongoose.model(
+  "Task",
+  taskSchema
+);

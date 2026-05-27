@@ -1,138 +1,373 @@
-import { useForm } from "react-hook-form";
+import React, { useState } from "react";
 
-import { useNavigate, Link } from "react-router-dom";
+import {
+  Container,
+  Typography,
+  TextField,
+  MenuItem,
+  Button,
+  Box,
+  Paper,
+  InputAdornment,
+  IconButton,
+  Alert,
+  Avatar,
+} from "@mui/material";
+
+import Grid from "@mui/material/Grid";
+
+import {
+  Person,
+  Email,
+  Phone,
+  Home,
+  Lock,
+  Visibility,
+  VisibilityOff,
+} from "@mui/icons-material";
+
+import RecyclingIcon from "@mui/icons-material/Recycling";
+
+import { useForm, Controller } from "react-hook-form";
+
+import { Link, useNavigate } from "react-router-dom";
+
 import API from "../services/api";
-import "../styles/Signup.css";
 
 function Signup() {
 
   const navigate = useNavigate();
 
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [serverError, setServerError] =
+    useState("");
+
   const {
-
     register,
-
+    control,
     handleSubmit,
-
-    formState: { errors },
-
-  } = useForm();
-
-  // Signup Submit
+    formState: {
+      errors,
+      isSubmitting,
+    },
+  } = useForm({
+    defaultValues: {
+      role: "User",
+    },
+  });
 
   const onSubmit = async (data) => {
 
     try {
+
+      setServerError("");
 
       const response = await API.post(
         "/auth/signup",
         data
       );
 
-      console.log(response.data);
+      alert(
+        response.data.message ||
+        "Signup successful"
+      );
 
-      alert("Signup Successful");
-
-      navigate("/");
+      navigate("/login");
 
     } catch (error) {
 
-      console.log(error);
-
-      alert("Signup Failed");
+      setServerError(
+        error.response?.data?.message ||
+        "Signup failed"
+      );
     }
   };
 
   return (
-    <div className="auth-container">
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background:
+          "linear-gradient(135deg,#dcfce7,#bbf7d0)",
+        display: "flex",
+        alignItems: "center",
+        py: 5,
+      }}
+    >
 
-      <div className="auth-box">
+      <Container maxWidth="md">
 
-        <h1>
-          Signup
-        </h1>
+        <Paper
+          elevation={10}
+          sx={{
+            p: 5,
+            borderRadius: 6,
+          }}
+        >
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+          <Box textAlign="center" mb={4}>
 
-          {/* Name */}
+            <Avatar
+              sx={{
+                bgcolor: "#16a34a",
+                width: 80,
+                height: 80,
+                mx: "auto",
+                mb: 2,
+              }}
+            >
 
-          <input
-            type="text"
+              <RecyclingIcon
+                sx={{ fontSize: 45 }}
+              />
 
-            placeholder="Enter Name"
+            </Avatar>
 
-            {...register("name", {
-              required: "Name is required",
-            })}
-          />
+            <Typography
+              variant="h3"
+              fontWeight="bold"
+              color="#166534"
+            >
+              EcoClean Signup
+            </Typography>
 
-          {errors.name && (
-            <p className="error">
-              {errors.name.message}
-            </p>
+            <Typography color="text.secondary">
+              Create your account
+            </Typography>
+
+          </Box>
+
+          {serverError && (
+
+            <Alert
+              severity="error"
+              sx={{ mb: 3 }}
+            >
+              {serverError}
+            </Alert>
+
           )}
 
-          {/* Email */}
+          <form onSubmit={handleSubmit(onSubmit)}>
 
-          <input
-            type="email"
+            <Grid container spacing={3}>
 
-            placeholder="Enter Email"
+              <Grid size={{ xs: 12, md: 6 }}>
 
-            {...register("email", {
-              required: "Email is required",
-            })}
-          />
+                <TextField
+                  fullWidth
+                  label="Full Name"
+                  {...register("name", {
+                    required: "Name required",
+                  })}
+                  error={!!errors.name}
+                  helperText={
+                    errors.name?.message
+                  }
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Person color="success" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
 
-          {errors.email && (
-            <p className="error">
-              {errors.email.message}
-            </p>
-          )}
+              </Grid>
 
-          {/* Password */}
+              <Grid size={{ xs: 12, md: 6 }}>
 
-          <input
-            type="password"
+                <TextField
+                  fullWidth
+                  label="Email"
+                  {...register("email", {
+                    required: "Email required",
+                  })}
+                  error={!!errors.email}
+                  helperText={
+                    errors.email?.message
+                  }
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Email color="success" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
 
-            placeholder="Enter Password"
+              </Grid>
 
-            {...register("password", {
-              required: "Password is required",
+              <Grid size={{ xs: 12, md: 6 }}>
 
-              minLength: {
-                value: 6,
-                message:
-                  "Password must be at least 6 characters",
-              },
-            })}
-          />
+                <TextField
+                  fullWidth
+                  label="Phone"
+                  {...register("phone")}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Phone color="success" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
 
-          {errors.password && (
-            <p className="error">
-              {errors.password.message}
-            </p>
-          )}
+              </Grid>
 
-          <button type="submit">
-            Signup
-          </button>
+              <Grid size={{ xs: 12, md: 6 }}>
 
-        </form>
+                <Controller
+                  name="role"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      select
+                      fullWidth
+                      label="Role"
+                      value={field.value}
+                      onChange={
+                        field.onChange
+                      }
+                    >
 
-        <p style={{ marginTop: "15px" }}>
+                      <MenuItem value="User">
+                        Citizen
+                      </MenuItem>
 
-          Already have an account?
+                      <MenuItem value="Worker">
+                        Worker
+                      </MenuItem>
 
-          <Link to="/">
-            Login
-          </Link>
+                    </TextField>
+                  )}
+                />
 
-        </p>
+              </Grid>
 
-      </div>
+              <Grid size={12}>
 
-    </div>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label="Address"
+                  {...register("address")}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Home color="success" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+              </Grid>
+
+              <Grid size={12}>
+
+                <TextField
+                  fullWidth
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  label="Password"
+                  {...register("password", {
+                    required:
+                      "Password required",
+                  })}
+                  error={!!errors.password}
+                  helperText={
+                    errors.password?.message
+                  }
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock color="success" />
+                      </InputAdornment>
+                    ),
+
+                    endAdornment: (
+                      <InputAdornment position="end">
+
+                        <IconButton
+                          onClick={() =>
+                            setShowPassword(
+                              !showPassword
+                            )
+                          }
+                        >
+
+                          {showPassword ? (
+                            <VisibilityOff />
+                          ) : (
+                            <Visibility />
+                          )}
+
+                        </IconButton>
+
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+              </Grid>
+
+            </Grid>
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              disabled={isSubmitting}
+              sx={{
+                mt: 5,
+                py: 1.7,
+                borderRadius: 3,
+                fontWeight: "bold",
+                fontSize: 16,
+                background:
+                  "linear-gradient(135deg,#15803d,#22c55e)",
+              }}
+            >
+
+              {isSubmitting
+                ? "Creating..."
+                : "Create Account"}
+
+            </Button>
+
+          </form>
+
+          <Typography
+            align="center"
+            sx={{ mt: 3 }}
+          >
+
+            Already have an account?{" "}
+
+            <Link
+              to="/login"
+              style={{
+                color: "#15803d",
+                fontWeight: "bold",
+                textDecoration: "none",
+              }}
+            >
+              Login
+            </Link>
+
+          </Typography>
+
+        </Paper>
+
+      </Container>
+
+    </Box>
   );
 }
 
