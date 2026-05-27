@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const API = axios.create({ 
-  // Replace with your new live URL
-  baseURL: "https://backend-405871201173.asia-south1.run.app/api" 
+  // Update this to your new Render URL
+  baseURL: "https://waste-managment-backend3.onrender.com/api" 
 });
 
 // REQUEST INTERCEPTOR

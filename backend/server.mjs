@@ -30,8 +30,10 @@ const connectDB = async () => {
 
 // ================= MIDDLEWARE =================
 // Add your live frontend URL here once you deploy your frontend
-const allowedOrigins = ["http://localhost:5173", "https://your-deployed-frontend-url.vercel.app"];
-
+const allowedOrigins = [
+  "http://localhost:5173", 
+  "https://waste-managment-puce.vercel.app" // Your live Vercel URL
+];
 app.use(
   cors({
     origin: (origin, callback) => {
