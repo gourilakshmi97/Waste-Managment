@@ -1,41 +1,15 @@
-import axios from "axios";
+import axios from 'axios';
 
-import axios from "axios";
-
-const API = axios.create({ 
-  // Use your live Render URL, NOT localhost
-  baseURL: "https://waste-managment-backend3.onrender.com/api" 
+const API = axios.create({
+  baseURL: 'https://your-backend-url.onrender.com/api',
 });
 
-// REQUEST INTERCEPTOR
-API.interceptors.request.use(
-  (req) => {
-    const token = localStorage.getItem("token");
-
-    if (token) {
-      req.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return req;
-  },
-  (error) => Promise.reject(error)
-);
-
-// RESPONSE INTERCEPTOR (IMPORTANT)
-API.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      console.log("Session expired ❌");
-
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-
-      window.location.href = "/login";
-    }
-
-    return Promise.reject(error);
+// Add the interceptor to include the token automatically
+API.interceptors.request.use((req) => {
+  if (localStorage.getItem('token')) {
+    req.headers.Authorization = `Bearer ${localStorage.getItem('token')}`;
   }
-);
+  return req;
+});
 
-export default API;
+export default API; // Make sure you have this export default
