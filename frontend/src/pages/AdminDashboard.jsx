@@ -119,6 +119,34 @@ const handleAssignSubmit = async () => {
     alert(err.response?.data?.message || "Assignment failed");
   }
 };
+const [isLoading, setIsLoading] = useState(true);
+
+const fetchDashboardData = async () => {
+  try {
+    const res = await API.get("/dashboard");
+
+    setMetrics(res.data.metrics);
+    setComplaints(res.data.complaints);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+const fetchWorkers = async () => {
+  const res = await API.get("/auth/users?role=Worker");
+  setWorkers(res.data);
+};
+
+const handleDelete = async (id) => {
+  try {
+    await API.delete(`/complaints/${id}`);
+    fetchDashboardData();
+  } catch (err) {
+    alert("Delete failed");
+  }
+};
   const getStatusColor = (status) => {
     switch (status) {
       case "Pending":

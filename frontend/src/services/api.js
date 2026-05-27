@@ -1,15 +1,15 @@
-import axios from 'axios';
+import axios from "axios";
 
 const API = axios.create({
-  baseURL: 'https://waste-managment-backend3.onrender.com',
+  baseURL: 'https://backend-405871201173.asia-south1.run.app/api',
 });
 
-// Add the interceptor to include the token automatically
 API.interceptors.request.use((req) => {
-  if (localStorage.getItem('token')) {
-    req.headers.Authorization = `Bearer ${localStorage.getItem('token')}`;
+  const token = localStorage.getItem("token");
+  if (token) {
+    req.headers.Authorization = `Bearer ${token}`;
   }
   return req;
 });
 
-export default API; // Make sure you have this export default
+export default API;
