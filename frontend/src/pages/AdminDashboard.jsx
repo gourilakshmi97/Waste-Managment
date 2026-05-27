@@ -54,12 +54,12 @@ export default function AdminDashboard() {
     resolved: 0,
   });
 
-  const [complaints, setComplaints] = useState([]);
-  const [workers, setWorkers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+ const [complaints, setComplaints] = useState([]);
+const [workers, setWorkers] = useState([]);
+const [isLoading, setIsLoading] = useState(true);
 
-  const [assigningItem, setAssigningItem] = useState(null);
-  const [selectedWorker, setSelectedWorker] = useState("");
+const [assigningItem, setAssigningItem] = useState(null);
+const [selectedWorker, setSelectedWorker] = useState("");
 
   // ================= AUTH HEADER =================
   const getAuthHeader = () => ({
@@ -119,7 +119,6 @@ const handleAssignSubmit = async () => {
     alert(err.response?.data?.message || "Assignment failed");
   }
 };
-const [isLoading, setIsLoading] = useState(true);
 
 const fetchDashboardData = async () => {
   try {
