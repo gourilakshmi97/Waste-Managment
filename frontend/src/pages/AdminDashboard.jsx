@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+ import API from "../services/api"; // Ensure this path is correct
 import {
   Container,
   Typography,
@@ -75,136 +75,50 @@ export default function AdminDashboard() {
   }, []);
 
   // ================= FETCH WORKERS =================
-  const fetchWorkers = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:5000/api/users/workers",
-        getAuthHeader()
-      );
 
-      setWorkers(res.data || []);
-    } catch (err) {
-      console.error("Worker fetch failed:", err);
+const handleAssignSubmit = async () => {
+  try {
+    if (!selectedWorker) {
+      alert("Please select a worker");
+      return;
     }
-  };
-
-  // ================= FETCH COMPLAINTS =================
-  const fetchDashboardData = async () => {
-    try {
-      setIsLoading(true);
-
-      const res = await axios.get(
-        "http://localhost:5000/api/complaints",
-        getAuthHeader()
-      );
-
-      const data = res.data || [];
-
-      setComplaints(data);
-
-      setMetrics({
-        total: data.length,
-
-        pending: data.filter(
-          (i) => i.status === "Pending"
-        ).length,
-
-        inProgress: data.filter(
-          (i) => i.status === "In Progress"
-        ).length,
-
-        resolved: data.filter(
-          (i) => i.status === "Resolved"
-        ).length,
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+    if (!assigningItem?._id) {
+      alert("Complaint not found");
+      return;
     }
-  };
 
-  // ================= DELETE =================
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Delete this complaint permanently?"
+    // 1. Perform the Network Request
+    await API.post("/tasks/assign", {
+      complaintId: assigningItem._id,
+      workerId: selectedWorker,
+    });
+
+    // 2. Perform the Local UI Update
+    setComplaints((prev) =>
+      prev.map((item) =>
+        item._id === assigningItem._id
+          ? {
+              ...item,
+              status: "In Progress",
+              assignedWorker:
+                workers.find((w) => w._id === selectedWorker)?.name || "Assigned",
+            }
+          : item
+      )
     );
 
-    if (!confirmDelete) return;
+    alert("Worker assigned successfully ✅");
 
-    try {
-      await axios.delete(
-        `http://localhost:5000/api/complaints/${id}`,
-        getAuthHeader()
-      );
-
-      fetchDashboardData();
-    } catch (err) {
-      console.error(err);
-      alert("Delete failed.");
-    }
-  };
-
-  // ================= ASSIGN WORKER =================
-  const handleAssignSubmit = async () => {
-    try {
-      if (!selectedWorker) {
-        alert("Please select a worker");
-        return;
-      }
-
-      if (!assigningItem?._id) {
-        alert("Complaint not found");
-        return;
-      }
-
-      console.log("Assigning:", {
-        complaintId: assigningItem._id,
-        workerId: selectedWorker,
-      });
-
-      await axios.post(
-        "http://localhost:5000/api/tasks/assign",
-        {
-          complaintId: assigningItem._id,
-          workerId: selectedWorker,
-        },
-        getAuthHeader()
-      );
-
-      // LOCAL UI UPDATE
-      setComplaints((prev) =>
-        prev.map((item) =>
-          item._id === assigningItem._id
-            ? {
-                ...item,
-                status: "In Progress",
-                assignedWorker:
-                  workers.find(
-                    (w) => w._id === selectedWorker
-                  )?.name || "Assigned",
-              }
-            : item
-        )
-      );
-
-      alert("Worker assigned successfully ✅");
-
-      setAssigningItem(null);
-      setSelectedWorker("");
-
-      fetchDashboardData();
-    } catch (err) {
-      console.error(err);
-
-      alert(
-        err.response?.data?.message ||
-          "Assignment failed"
-      );
-    }
-  };
-
-  // ================= STATUS COLORS =================
+    // 3. Reset state and refresh data
+    setAssigningItem(null);
+    setSelectedWorker("");
+    fetchDashboardData();
+    
+  } catch (err) {
+    console.error(err);
+    alert(err.response?.data?.message || "Assignment failed");
+  }
+};
   const getStatusColor = (status) => {
     switch (status) {
       case "Pending":

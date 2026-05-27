@@ -1,7 +1,9 @@
 import axios from "axios";
 
+import axios from "axios";
+
 const API = axios.create({ 
-  // Update this to your new Render URL
+  // Use your live Render URL, NOT localhost
   baseURL: "https://waste-managment-backend3.onrender.com/api" 
 });
 

@@ -55,66 +55,35 @@ export default function WorkerDashboard() {
   }, []);
 
   const fetchWorkerTasks = async () => {
-
-    try {
-
-      setLoading(true);
-
-      const response = await axios.get(
-        "http://localhost:5000/api/complaints/worker/my-tasks",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "token"
-            )}`,
-          },
-        }
-      );
-
-      // IMPORTANT FIX
-      setTasks(response.data || []);
-
-    } catch (err) {
-
-      console.error(err);
-
-    } finally {
-
-      setLoading(false);
-    }
-  };
-
+  try {
+    setLoading(true);
+    
+    // The API instance handles the baseURL and the Authorization header automatically
+    const response = await API.get("/complaints/worker/my-tasks");
+    
+    setTasks(response.data); // Assuming you are setting this to a state named 'tasks'
+  } catch (err) {
+    console.error("Failed to fetch worker tasks:", err);
+  } finally {
+    setLoading(false);
+  }
+};
   // ================= UPDATE STATUS =================
-  const handleStatusChange = async (
-    id,
-    nextStatus
-  ) => {
+  const handleStatusChange = async (id, nextStatus) => {
+  try {
+    // API instance handles the full URL and the Authorization header
+    await API.patch(`/complaints/${id}`, {
+      status: nextStatus,
+    });
 
-    try {
-
-      await axios.patch(
-        `http://localhost:5000/api/complaints/${id}`,
-        {
-          status: nextStatus,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "token"
-            )}`,
-          },
-        }
-      );
-
-      fetchWorkerTasks();
-
-    } catch (err) {
-
-      console.error(err);
-
-      alert("Update failed.");
-    }
-  };
+    // Refresh the list after a successful update
+    fetchWorkerTasks();
+    alert("Status updated successfully ✅");
+  } catch (err) {
+    console.error(err);
+    alert("Update failed ❌");
+  }
+};
 
   // ================= IMAGE =================
   const handleImageUpload = (e) => {
@@ -137,48 +106,29 @@ export default function WorkerDashboard() {
 
   // ================= RESOLVE =================
   const handleResolveSubmit = async () => {
+  if (!base64Image) {
+    alert("Upload proof image first.");
+    return;
+  }
 
-    if (!base64Image) {
+  try {
+    // API instance handles the base URL and Authorization header automatically
+    await API.patch(`/complaints/${selectedTask._id}`, {
+      status: "Resolved",
+      image: base64Image,
+    });
 
-      alert("Upload proof image first.");
-
-      return;
-    }
-
-    try {
-
-      await axios.patch(
-        `http://localhost:5000/api/complaints/${selectedTask._id}`,
-        {
-          status: "Resolved",
-
-          image: base64Image,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "token"
-            )}`,
-          },
-        }
-      );
-
-      setSelectedTask(null);
-
-      setBase64Image("");
-
-      setUploadPreview("");
-
-      fetchWorkerTasks();
-
-    } catch (err) {
-
-      console.error(err);
-
-      alert("Submission failed.");
-    }
-  };
-
+    setSelectedTask(null);
+    setBase64Image("");
+    setUploadPreview("");
+    
+    alert("Submission successful ✅");
+    fetchWorkerTasks();
+  } catch (err) {
+    console.error(err);
+    alert("Submission failed ❌");
+  }
+};
   // ================= STATUS COLOR =================
   const getChipColor = (status) => {
 

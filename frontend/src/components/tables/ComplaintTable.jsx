@@ -27,7 +27,7 @@ import {
 
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
-
+import API from "../services/api"; // Adjust this path to where your api.js is located
 export default function ComplaintTable({ onActionComplete }) {
 
   const navigate = useNavigate();
@@ -49,56 +49,32 @@ export default function ComplaintTable({ onActionComplete }) {
   }, []);
 
   const fetchComplaints = async () => {
+  try {
+    setLoading(true);
+    // Change: Use API.get, and just the route path
+    const response = await API.get("/complaints"); 
+    setComplaints(response.data);
+  } catch (error) {
+    console.error(error);
+    alert("Failed to fetch complaints");
+  } finally {
+    setLoading(false);
+  }
+};
 
-    try {
-
-      setLoading(true);
-
-      const response = await axios.get(
-        "http://localhost:5000/api/complaints"
-      );
-
-      setComplaints(response.data);
-
-    } catch (error) {
-
-      console.error(error);
-
-      alert("Failed to fetch complaints");
-
-    } finally {
-
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
-
-    try {
-
-      await axios.delete(
-        `http://localhost:5000/api/complaints/${deleteTargetId}`
-      );
-
-      setDeleteTargetId(null);
-
-      fetchComplaints();
-
-      if (onActionComplete) {
-
-        onActionComplete();
-      }
-
-      alert("Complaint deleted successfully ✅");
-
-    } catch (error) {
-
-      console.error(error);
-
-      alert("Delete failed ❌");
-    }
-  };
-
+const handleDeleteConfirm = async () => {
+  try {
+    // Change: Use API.delete, and the path with the ID
+    await API.delete(`/complaints/${deleteTargetId}`);
+    
+    setDeleteTargetId(null);
+    fetchComplaints(); // This will now use the updated API instance as well
+  } catch (error) {
+    console.error(error);
+    alert("Failed to delete complaint");
+  }
+};
+    
   const filteredData = complaints.filter((item) => {
 
     const matchesSearch =

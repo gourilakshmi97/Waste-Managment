@@ -17,7 +17,7 @@ import {
   CardContent,
   Button,
 } from "@mui/material";
-
+import API from "../services/api";
 import Grid from "@mui/material/Grid";
 
 import EngineeringIcon from "@mui/icons-material/Engineering";
@@ -44,16 +44,7 @@ export default function WorkersPage() {
 
       setLoading(true);
 
-      const res = await axios.get(
-        "http://localhost:5000/api/tasks/my-tasks",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "token"
-            )}`,
-          },
-        }
-      );
+      const res = await API.get("/tasks/my-tasks");
 
       setTasks(res.data);
 
@@ -67,32 +58,19 @@ export default function WorkersPage() {
     }
   };
 
-  const updateStatus = async (
-    id,
-    status
-  ) => {
-
-    try {
-
-      await axios.patch(
-        `http://localhost:5000/api/complaints/${id}`,
-        { status },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "token"
-            )}`,
-          },
-        }
-      );
-
-      fetchTasks();
-
-    } catch (err) {
-
-      console.error(err);
-    }
-  };
+  const updateStatus = async (id, status) => {
+  try {
+    await API.patch(`/complaints/${id}`, { status });
+    alert("Status updated successfully ✅");
+    
+    // IF you want to refresh the list immediately after updating:
+    fetchTasks(); 
+    
+  } catch (err) {
+    console.error(err);
+    alert("Failed to update status ❌");
+  }
+};
 
   return (
     <AdminLayout>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-
+import API from "../services/api";
 import {
   Dialog,
   DialogTitle,
@@ -47,43 +47,36 @@ const UploadProofModal = ({
 
     setIsSubmitting(true);
 
-    const reader = new FileReader();
+   // Ensure you have imported your API instance at the top
+import API from "../services/api"; 
 
-    reader.readAsDataURL(imageFile);
+const reader = new FileReader();
 
-    reader.onloadend = async () => {
+reader.readAsDataURL(imageFile);
 
-      try {
+reader.onloadend = async () => {
+  try {
+    // Change: Use API.patch, and just the route path
+    await API.patch(`/complaints/${taskId}`, {
+      image: reader.result,
+      status: "Resolved",
+    });
 
-        await axios.patch(
-          `http://localhost:5000/api/complaints/${taskId}`,
-          {
-            image: reader.result,
-            status: "Resolved",
-          }
-        );
+    alert("Proof uploaded successfully ✅");
 
-        alert("Proof uploaded successfully ✅");
+    setImageFile(null);
+    setPreviewUrl("");
 
-        setImageFile(null);
-        setPreviewUrl("");
-
-        onUploadSuccess();
-        onClose();
-
-      } catch (err) {
-
-        console.error(err);
-
-        alert("Upload failed ❌");
-
-      } finally {
-
-        setIsSubmitting(false);
-      }
-    };
-  };
-
+    onUploadSuccess();
+    onClose();
+  } catch (err) {
+    console.error(err);
+    alert("Upload failed ❌");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+  }
   return (
     <Dialog
       open={isOpen}

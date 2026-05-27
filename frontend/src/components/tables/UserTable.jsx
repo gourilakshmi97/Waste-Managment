@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
+import API from "../services/api";
 import {
   Box,
   Paper,
@@ -30,37 +30,37 @@ const UserTable = () => {
   useEffect(() => {
     fetchRegisteredUsers();
   }, []);
+const fetchRegisteredUsers = async () => {
+  try {
+    // Change: Use API.get, and just the route path
+    const res = await API.get("/users");
+    setUsers(res.data);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const fetchRegisteredUsers = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/users");
-      setUsers(res.data);
-    } catch (err) {
-      console.error("Error fetching users:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+const handleDelete = async (id) => {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this user?"
+  );
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this user?"
-    );
+  if (!confirmDelete) return;
 
-    if (!confirmDelete) return;
+  try {
+    // Change: Use API.delete, and the path with the ID
+    await API.delete(`/users/${id}`);
 
-    try {
-      await axios.delete(`http://localhost:5000/api/users/${id}`);
+    setUsers(users.filter((u) => u._id !== id));
 
-      setUsers(users.filter((u) => u._id !== id));
-
-      alert("User deleted successfully ✅");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to delete user ❌");
-    }
-  };
-
+    alert("User deleted successfully ✅");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to delete user ❌");
+  }
+};
   const filteredUsers = users.filter(
     (u) =>
       (u.name || "")
