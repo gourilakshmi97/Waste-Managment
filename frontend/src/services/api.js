@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'https://your-backend-url.onrender.com/api',
+  baseURL: 'https://waste-managment-backend3.onrender.com',
 });
 
 // Add the interceptor to include the token automatically
