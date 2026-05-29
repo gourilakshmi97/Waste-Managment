@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
- import API from "../services/api"; // Ensure this path is correct
+import API from "../services/api"; // Ensure this path is correct
 import {
   Container,
   Typography,
