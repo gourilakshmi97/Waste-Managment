@@ -125,6 +125,7 @@ const fetchDashboardData = async () => {
 
     setMetrics(res.data.metrics);
     setComplaints(res.data.complaints);
+    // console.log(res.data.complaints)
   } catch (err) {
     console.error(err);
   } finally {
@@ -554,14 +555,16 @@ const handleDelete = async (id) => {
                 )
               }
             >
-              {workers.map((worker) => (
-                <MenuItem
-                  key={worker._id}
-                  value={worker._id}
-                >
-                  {worker.name}
-                </MenuItem>
-              ))}
+          {workers
+            .filter((worker) => worker.role === "Worker")
+            .map((worker) => (
+              <MenuItem
+                key={worker._id}
+                value={worker._id}
+              >
+                {worker.name}
+              </MenuItem>
+          ))}
             </Select>
           </FormControl>
 
