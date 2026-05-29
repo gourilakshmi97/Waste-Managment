@@ -2,7 +2,7 @@ import axios from "axios";
 
 const API = axios.create({
   baseURL:
-    "https://backend-405871201173.asia-south1.run.app/api",
+    "https://backend-405871201173.asia-south1.run.app",
 });
 
 API.interceptors.request.use((req) => {
