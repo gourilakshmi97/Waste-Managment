@@ -29,6 +29,10 @@ import PendingActionsIcon from "@mui/icons-material/PendingActions";
 import RecyclingIcon from "@mui/icons-material/Recycling";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import { resolveImageUrl } from "../../utils/imageUrl";
+
+// 10 MB — matches the backend multer limit.
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 export default function WorkerDashboard() {
 
@@ -39,11 +43,15 @@ export default function WorkerDashboard() {
   const [selectedTask, setSelectedTask] =
     useState(null);
 
-  const [base64Image, setBase64Image] =
-    useState("");
+  // The actual proof File is uploaded via multipart/form-data (no base64).
+  const [selectedFile, setSelectedFile] =
+    useState(null);
 
   const [uploadPreview, setUploadPreview] =
     useState("");
+
+  const [uploadProgress, setUploadProgress] =
+    useState(0);
 
   // ================= FETCH TASKS =================
   useEffect(() => {
@@ -84,42 +92,65 @@ export default function WorkerDashboard() {
 };
 
   // ================= IMAGE =================
+  // Keep the raw File and show a local preview; the file is uploaded via
+  // multipart/form-data on submit. Validate before upload for clear feedback.
   const handleImageUpload = (e) => {
 
     const file = e.target.files[0];
 
     if (!file) return;
 
-    const reader = new FileReader();
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file.");
+      e.target.value = "";
+      return;
+    }
 
-    reader.onloadend = () => {
+    if (file.size > MAX_FILE_BYTES) {
+      alert("Image is too large (max 10MB). Please choose a smaller file.");
+      e.target.value = "";
+      return;
+    }
 
-      setBase64Image(reader.result);
+    // Revoke the previous preview URL before creating a new one.
+    if (uploadPreview) URL.revokeObjectURL(uploadPreview);
 
-      setUploadPreview(reader.result);
-    };
-
-    reader.readAsDataURL(file);
+    setSelectedFile(file);
+    setUploadPreview(URL.createObjectURL(file));
   };
 
   // ================= RESOLVE =================
   const handleResolveSubmit = async () => {
-  if (!base64Image) {
+  if (!selectedFile) {
     alert("Upload proof image first.");
     return;
   }
 
   try {
-    // API instance handles the base URL and Authorization header automatically
-    await API.patch(`/complaints/${selectedTask._id}`, {
-      status: "Resolved",
-      image: base64Image,
+    setUploadProgress(0);
+
+    // MULTIPART PAYLOAD — status + proof image file.
+    const formData = new FormData();
+    formData.append("status", "Resolved");
+    formData.append("image", selectedFile);
+
+    await API.patch(`/complaints/${selectedTask._id}`, formData, {
+      onUploadProgress: (event) => {
+        if (event.total) {
+          setUploadProgress(
+            Math.round((event.loaded * 100) / event.total)
+          );
+        }
+      },
     });
 
+    if (uploadPreview) URL.revokeObjectURL(uploadPreview);
+
     setSelectedTask(null);
-    setBase64Image("");
+    setSelectedFile(null);
     setUploadPreview("");
-    
+    setUploadProgress(0);
+
     alert("Submission successful ✅");
     fetchWorkerTasks();
   } catch (err) {
@@ -457,12 +488,12 @@ export default function WorkerDashboard() {
 
                   {/* IMAGE */}
 
-                  {task.image ? (
+                  {resolveImageUrl(task.imageUrl) ? (
 
                     <CardMedia
                       component="img"
                       height="220"
-                      image={task.image}
+                      image={resolveImageUrl(task.imageUrl)}
                     />
 
                   ) : (
@@ -722,7 +753,7 @@ export default function WorkerDashboard() {
               borderStyle: "dashed",
             }}
           >
-            Upload Image
+            {selectedFile ? "Change Image" : "Upload Image"}
 
             <input
               hidden
@@ -750,6 +781,19 @@ export default function WorkerDashboard() {
 
             </Box>
 
+          )}
+
+          {uploadProgress > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <LinearProgress
+                variant="determinate"
+                value={uploadProgress}
+                color="success"
+              />
+              <Typography variant="caption" color="text.secondary">
+                Uploading... {uploadProgress}%
+              </Typography>
+            </Box>
           )}
 
           <Button

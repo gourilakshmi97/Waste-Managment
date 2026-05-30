@@ -18,7 +18,9 @@ const complaintSchema = new mongoose.Schema(
       required: true,
     },
 
-    image: {
+    // Relative path to the uploaded file (e.g. "/uploads/complaints/abc.jpg").
+    // No base64 image data is stored.
+    imageUrl: {
       type: String,
       default: "",
     },

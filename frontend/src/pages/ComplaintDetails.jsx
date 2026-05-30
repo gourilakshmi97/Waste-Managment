@@ -16,6 +16,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 import Navbar from "../components/Navbar";
 import API from "../services/api";
+import { resolveImageUrl } from "../utils/imageUrl";
 
 function ComplaintDetails() {
 
@@ -145,12 +146,12 @@ function ComplaintDetails() {
             sx={{ mb: 3 }}
           />
 
-          {complaint.image && (
+          {resolveImageUrl(complaint.imageUrl) && (
 
             <Box sx={{ mb: 3 }}>
 
               <img
-                src={complaint.image}
+                src={resolveImageUrl(complaint.imageUrl)}
                 alt="Complaint"
                 style={{
                   width: "100%",

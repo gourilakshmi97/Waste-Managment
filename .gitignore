@@ -67,3 +67,6 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# uploaded complaint images (runtime-generated, not source)
+backend/uploads/

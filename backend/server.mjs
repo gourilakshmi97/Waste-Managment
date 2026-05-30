@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import authRoutes from "./routes/authRoutes.js";
 import complaintRoutes from "./routes/complaintRoutes.js";
@@ -10,10 +12,17 @@ import taskRoutes from "./routes/taskRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 dotenv.config();
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const app = express();
 
+// Images are uploaded as multipart/form-data (handled by multer), so the JSON
+// body parser only handles small request bodies and uses its default limit.
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded files, e.g. GET /uploads/complaints/<file>.jpg
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const allowedOrigins = [
   "http://localhost:5173", 

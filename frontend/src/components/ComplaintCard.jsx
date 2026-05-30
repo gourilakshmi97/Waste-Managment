@@ -11,6 +11,7 @@ import {
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { useNavigate } from "react-router-dom";
+import { resolveImageUrl, NO_IMAGE_PLACEHOLDER } from "../utils/imageUrl";
 
 export default function ComplaintCard({ complaint }) {
   const navigate = useNavigate();
@@ -49,10 +50,7 @@ export default function ComplaintCard({ complaint }) {
       {/* IMAGE */}
       <CardMedia
         component="img"
-        image={
-          complaint.image ||
-          "https://via.placeholder.com/400x220?text=No+Image"
-        }
+        image={resolveImageUrl(complaint.imageUrl) || NO_IMAGE_PLACEHOLDER}
         alt="Complaint"
         sx={{
           height: 220,
