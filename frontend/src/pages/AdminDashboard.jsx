@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import API from "../services/api"; // Ensure this path is correct
 import {
   Container,
@@ -78,11 +79,11 @@ const [selectedWorker, setSelectedWorker] = useState("");
 const handleAssignSubmit = async () => {
   try {
     if (!selectedWorker) {
-      alert("Please select a worker");
+      toast.warning("Please select a worker");
       return;
     }
     if (!assigningItem?._id) {
-      alert("Complaint not found");
+      toast.error("Complaint not found");
       return;
     }
 
@@ -106,7 +107,7 @@ const handleAssignSubmit = async () => {
       )
     );
 
-    alert("Worker assigned successfully ✅");
+    toast.success("Worker assigned successfully");
 
     // 3. Reset state and refresh data
     setAssigningItem(null);
@@ -115,7 +116,7 @@ const handleAssignSubmit = async () => {
     
   } catch (err) {
     console.error(err);
-    alert(err.response?.data?.message || "Assignment failed");
+    toast.error(err.response?.data?.message || "Assignment failed");
   }
 };
 
@@ -143,7 +144,7 @@ const handleDelete = async (id) => {
     await API.delete(`/complaints/${id}`);
     fetchDashboardData();
   } catch (err) {
-    alert("Delete failed");
+    toast.error("Delete failed");
   }
 };
   const getStatusColor = (status) => {

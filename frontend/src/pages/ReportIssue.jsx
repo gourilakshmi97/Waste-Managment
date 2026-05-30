@@ -13,6 +13,8 @@ import {
   Alert,
 } from "@mui/material";
 
+import { toast } from "react-toastify";
+
 import Navbar from "../components/Navbar";
 import MapPicker from "../components/MapPicker";
 import API from "../services/api";
@@ -55,13 +57,13 @@ function ReportIssue() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file.");
+      toast.warning("Please select a valid image file");
       e.target.value = "";
       return;
     }
 
     if (file.size > MAX_FILE_BYTES) {
-      alert("Image is too large (max 10MB). Please choose a smaller file.");
+      toast.warning("Image is too large (max 10MB). Please choose a smaller file");
       e.target.value = "";
       return;
     }
@@ -76,7 +78,7 @@ function ReportIssue() {
     // LOCATION CHECK
     if (!latitude || !longitude) {
 
-      alert("Please select a location on the map.");
+      toast.warning("Please select a location on the map");
 
       return;
     }
@@ -120,7 +122,7 @@ function ReportIssue() {
         }
       );
 
-      alert("Complaint submitted successfully ✅");
+      toast.success("Complaint submitted successfully");
 
       // RESET
       reset();
@@ -142,9 +144,9 @@ function ReportIssue() {
         error
       );
 
-      alert(
+      toast.error(
         error.response?.data?.message ||
-        "Complaint submission failed ❌"
+        "Complaint submission failed"
       );
 
     } finally {

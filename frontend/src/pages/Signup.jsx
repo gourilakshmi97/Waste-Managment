@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import { toast } from "react-toastify";
+
 import {
   Container,
   Typography,
@@ -69,7 +71,7 @@ function Signup() {
         data
       );
 
-      alert(
+      toast.success(
         response.data.message ||
         "Signup successful"
       );

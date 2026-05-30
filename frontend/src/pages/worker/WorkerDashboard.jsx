@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import API from "../../services/api";
 import {
   Container,
@@ -84,10 +85,10 @@ export default function WorkerDashboard() {
 
     // Refresh the list after a successful update
     fetchWorkerTasks();
-    alert("Status updated successfully ✅");
+    toast.success("Status updated successfully");
   } catch (err) {
     console.error(err);
-    alert("Update failed ❌");
+    toast.error("Update failed");
   }
 };
 
@@ -101,13 +102,13 @@ export default function WorkerDashboard() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file.");
+      toast.warning("Please select a valid image file");
       e.target.value = "";
       return;
     }
 
     if (file.size > MAX_FILE_BYTES) {
-      alert("Image is too large (max 10MB). Please choose a smaller file.");
+      toast.warning("Image is too large (max 10MB). Please choose a smaller file");
       e.target.value = "";
       return;
     }
@@ -122,7 +123,7 @@ export default function WorkerDashboard() {
   // ================= RESOLVE =================
   const handleResolveSubmit = async () => {
   if (!selectedFile) {
-    alert("Upload proof image first.");
+    toast.warning("Upload proof image first");
     return;
   }
 
@@ -151,11 +152,11 @@ export default function WorkerDashboard() {
     setUploadPreview("");
     setUploadProgress(0);
 
-    alert("Submission successful ✅");
+    toast.success("Submission successful");
     fetchWorkerTasks();
   } catch (err) {
     console.error(err);
-    alert("Submission failed ❌");
+    toast.error("Submission failed");
   }
 };
   // ================= STATUS COLOR =================
