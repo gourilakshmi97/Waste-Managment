@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
+import { toast } from "react-toastify";
 
 import {
   Box,
@@ -56,7 +57,7 @@ export default function ComplaintTable({ onActionComplete }) {
     setComplaints(response.data);
   } catch (error) {
     console.error(error);
-    alert("Failed to fetch complaints");
+    toast.error("Failed to fetch complaints");
   } finally {
     setLoading(false);
   }
@@ -71,7 +72,7 @@ const handleDeleteConfirm = async () => {
     fetchComplaints(); // This will now use the updated API instance as well
   } catch (error) {
     console.error(error);
-    alert("Failed to delete complaint");
+    toast.error("Failed to delete complaint");
   }
 };
     

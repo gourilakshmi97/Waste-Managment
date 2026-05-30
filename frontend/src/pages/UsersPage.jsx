@@ -18,6 +18,7 @@ import {
 
 import DeleteIcon from "@mui/icons-material/Delete";
 import BlockIcon from "@mui/icons-material/Block";
+import { toast } from "react-toastify";
 import API from "../services/api";
 
 export default function UsersPage() {
@@ -42,7 +43,7 @@ export default function UsersPage() {
       setUsers(res.data || []);
     } catch (error) {
       console.error("Error fetching users", error);
-      alert("Failed to load users");
+      toast.error("Failed to load users");
     } finally {
       setLoading(false);
     }
@@ -62,11 +63,11 @@ export default function UsersPage() {
         }
       );
 
-      alert(res.data.message);
+      toast.success(res.data.message);
       fetchUsers();
     } catch (error) {
       console.error(error);
-      alert("Failed to update user");
+      toast.error("Failed to update user");
     }
   };
 
@@ -80,11 +81,11 @@ export default function UsersPage() {
         },
       });
 
-      alert(res.data.message);
+      toast.success(res.data.message);
       fetchUsers();
     } catch (error) {
       console.error(error);
-      alert("Delete failed");
+      toast.error("Delete failed");
     }
   };
 

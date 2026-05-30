@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 import API from "../services/api";
 import {
   Box,
@@ -55,10 +56,10 @@ const handleDelete = async (id) => {
 
     setUsers(users.filter((u) => u._id !== id));
 
-    alert("User deleted successfully ✅");
+    toast.success("User deleted successfully");
   } catch (err) {
     console.error(err);
-    alert("Failed to delete user ❌");
+    toast.error("Failed to delete user");
   }
 };
   const filteredUsers = users.filter(

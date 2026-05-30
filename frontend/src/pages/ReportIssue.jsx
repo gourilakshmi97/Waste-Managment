@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import {
@@ -9,12 +9,18 @@ import {
   Box,
   Paper,
   CircularProgress,
+  LinearProgress,
   Alert,
 } from "@mui/material";
+
+import { toast } from "react-toastify";
 
 import Navbar from "../components/Navbar";
 import MapPicker from "../components/MapPicker";
 import API from "../services/api";
+
+// 10 MB — matches the backend multer limit.
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 function ReportIssue() {
 
@@ -24,28 +30,46 @@ function ReportIssue() {
     reset,
   } = useForm();
 
-  const [base64Image, setBase64Image] = useState("");
+  // The actual File object is uploaded via multipart/form-data (no base64).
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
 
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [location, setLocation] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  // IMAGE CONVERSION
-  const handleImageConversion = (e) => {
+  // Revoke the previous object URL when the preview changes / on unmount.
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  // IMAGE SELECTION — keep the raw File and show a local preview. Validation
+  // gives immediate, friendly feedback before any upload happens.
+  const handleImageSelect = (e) => {
 
     const file = e.target.files[0];
 
     if (!file) return;
 
-    const reader = new FileReader();
+    if (!file.type.startsWith("image/")) {
+      toast.warning("Please select a valid image file");
+      e.target.value = "";
+      return;
+    }
 
-    reader.onloadend = () => {
-      setBase64Image(reader.result);
-    };
+    if (file.size > MAX_FILE_BYTES) {
+      toast.warning("Image is too large (max 10MB). Please choose a smaller file");
+      e.target.value = "";
+      return;
+    }
 
-    reader.readAsDataURL(file);
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
   };
 
   // SUBMIT
@@ -54,7 +78,7 @@ function ReportIssue() {
     // LOCATION CHECK
     if (!latitude || !longitude) {
 
-      alert("Please select a location on the map.");
+      toast.warning("Please select a location on the map");
 
       return;
     }
@@ -62,48 +86,50 @@ function ReportIssue() {
     try {
 
       setLoading(true);
+      setUploadProgress(0);
 
       // GET LOGGED USER
       const loggedUser = JSON.parse(
         localStorage.getItem("user")
       );
 
-      // PAYLOAD
-      const payload = {
+      // MULTIPART PAYLOAD
+      const formData = new FormData();
 
-        title: data.title,
+      formData.append("title", data.title);
+      formData.append("description", data.description);
+      formData.append("location", location);
+      formData.append("latitude", latitude);
+      formData.append("longitude", longitude);
+      formData.append("userId", loggedUser?.id || "");
 
-        description: data.description,
+      if (selectedFile) {
+        formData.append("image", selectedFile);
+      }
 
-        location: location,
-
-        latitude: Number(latitude),
-
-        longitude: Number(longitude),
-
-        image: base64Image,
-
-        // IMPORTANT
-        userId: loggedUser?.id,
-      };
-
-      // API CALL
+      // API CALL — axios sets the multipart boundary automatically.
       await API.post(
         "/complaints",
-        payload,
+        formData,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          onUploadProgress: (event) => {
+            if (event.total) {
+              setUploadProgress(
+                Math.round((event.loaded * 100) / event.total)
+              );
+            }
           },
         }
       );
 
-      alert("Complaint submitted successfully ✅");
+      toast.success("Complaint submitted successfully");
 
       // RESET
       reset();
 
-      setBase64Image("");
+      setSelectedFile(null);
+      setPreviewUrl("");
+      setUploadProgress(0);
 
       setLatitude("");
 
@@ -118,9 +144,9 @@ function ReportIssue() {
         error
       );
 
-      alert(
+      toast.error(
         error.response?.data?.message ||
-        "Complaint submission failed ❌"
+        "Complaint submission failed"
       );
 
     } finally {
@@ -199,23 +225,24 @@ function ReportIssue() {
                 variant="outlined"
                 component="label"
                 color="success"
+                disabled={loading}
                 sx={{ mt: 2 }}
               >
-                Upload Photo
+                {selectedFile ? "Change Photo" : "Upload Photo"}
 
                 <input
                   hidden
                   type="file"
                   accept="image/*"
-                  onChange={handleImageConversion}
+                  onChange={handleImageSelect}
                 />
               </Button>
 
               {/* PREVIEW */}
-              {base64Image && (
+              {previewUrl && (
                 <Box mt={2}>
                   <img
-                    src={base64Image}
+                    src={previewUrl}
                     alt="Preview"
                     style={{
                       width: "100%",
@@ -224,6 +251,23 @@ function ReportIssue() {
                       objectFit: "cover",
                     }}
                   />
+                </Box>
+              )}
+
+              {/* UPLOAD PROGRESS */}
+              {loading && uploadProgress > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <LinearProgress
+                    variant="determinate"
+                    value={uploadProgress}
+                    color="success"
+                  />
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Uploading... {uploadProgress}%
+                  </Typography>
                 </Box>
               )}
 

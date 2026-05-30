@@ -5,6 +5,8 @@ import React, {
 
 import axios from "axios";
 
+import { toast } from "react-toastify";
+
 import {
   Container,
   Typography,
@@ -61,14 +63,14 @@ export default function WorkersPage() {
   const updateStatus = async (id, status) => {
   try {
     await API.patch(`/complaints/${id}`, { status });
-    alert("Status updated successfully ✅");
-    
+    toast.success("Status updated successfully");
+
     // IF you want to refresh the list immediately after updating:
-    fetchTasks(); 
-    
+    fetchTasks();
+
   } catch (err) {
     console.error(err);
-    alert("Failed to update status ❌");
+    toast.error("Failed to update status");
   }
 };
 

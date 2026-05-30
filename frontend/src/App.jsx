@@ -1,4 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -35,6 +37,14 @@ function ProtectedRoute({ children, allowedRoles }) {
 
 function App() {
   return (
+    <>
+    <ToastContainer
+      position="top-right"
+      autoClose={3000}
+      newestOnTop
+      pauseOnHover
+      theme="colored"
+    />
     <Routes>
 
       <Route path="/login" element={<Login />} />
@@ -81,6 +91,7 @@ function App() {
       <Route path="*" element={<Navigate to="/login" replace />} />
 
     </Routes>
+    </>
   );
 }
 

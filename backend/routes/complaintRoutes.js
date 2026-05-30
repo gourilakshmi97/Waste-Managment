@@ -5,6 +5,10 @@ import Complaint from "../models/Complaint.mjs";
 import User from "../models/User.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
+import {
+  uploadComplaintImage,
+  complaintImagePath,
+} from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -74,8 +78,10 @@ router.get(
       }
 
       // FIND ASSIGNED TASKS
+      // Assignments store the worker's _id in `assignedWorker` (see
+      // /api/tasks/assign), so match by id — not by name.
       const complaints = await Complaint.find({
-        assignedWorker: worker.name,
+        assignedWorker: String(worker._id),
       }).sort({ createdAt: -1 });
 
       res.status(200).json(complaints);
@@ -149,6 +155,7 @@ router.get("/:id", async (req, res) => {
 router.post(
   "/",
   authMiddleware,
+  uploadComplaintImage,
   async (req, res) => {
     try {
 
@@ -158,10 +165,9 @@ router.post(
         title,
         description,
         location,
-        image,
         latitude,
         longitude,
-      } = req.body;
+      } = req.body || {};
 
       // VALIDATION
       if (!title || !description || !location) {
@@ -170,6 +176,11 @@ router.post(
             "Title, description and location required",
         });
       }
+
+      // Store the uploaded file's public path, not base64 data.
+      const imageUrl = req.file
+        ? complaintImagePath(req.file.filename)
+        : "";
 
       const complaint = await Complaint.create({
         userId,
@@ -180,7 +191,7 @@ router.post(
 
         location,
 
-        image: image || "",
+        imageUrl,
 
         latitude: latitude
           ? Number(latitude)
@@ -213,19 +224,32 @@ router.post(
 router.patch(
   "/:id",
   authMiddleware,
+  uploadComplaintImage,
   async (req, res) => {
     try {
+
+      // Only update fields that were actually sent, so a worker submitting
+      // proof (status + image) doesn't wipe assignedWorker, and vice versa.
+      const body = req.body || {};
+      const updateFields = {};
+
+      if (body.status !== undefined) {
+        updateFields.status = body.status;
+      }
+
+      if (body.assignedWorker !== undefined) {
+        updateFields.assignedWorker = body.assignedWorker;
+      }
+
+      // Worker restoration-proof image (multipart upload).
+      if (req.file) {
+        updateFields.imageUrl = complaintImagePath(req.file.filename);
+      }
 
       const updatedComplaint =
         await Complaint.findByIdAndUpdate(
           req.params.id,
-          {
-            $set: {
-              status: req.body.status,
-              assignedWorker:
-                req.body.assignedWorker,
-            },
-          },
+          { $set: updateFields },
           { new: true }
         );
 

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 import API from "../services/api";
 import {
   Dialog,
@@ -41,7 +42,7 @@ const UploadProofModal = ({
   const handleSubmitProof = () => {
 
     if (!imageFile) {
-      alert("Please select an image first.");
+      toast.warning("Please select an image first");
       return;
     }
 
@@ -62,7 +63,7 @@ reader.onloadend = async () => {
       status: "Resolved",
     });
 
-    alert("Proof uploaded successfully ✅");
+    toast.success("Proof uploaded successfully");
 
     setImageFile(null);
     setPreviewUrl("");
@@ -71,7 +72,7 @@ reader.onloadend = async () => {
     onClose();
   } catch (err) {
     console.error(err);
-    alert("Upload failed ❌");
+    toast.error("Upload failed");
   } finally {
     setIsSubmitting(false);
   }

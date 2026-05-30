@@ -1,5 +1,7 @@
 import React from "react";
 
+import { toast } from "react-toastify";
+
 import { useForm, Controller } from "react-hook-form";
 
 import { Link, useNavigate } from "react-router-dom";
@@ -89,9 +91,9 @@ function Login() {
 
       console.error(error);
 
-      alert(
+      toast.error(
         error.response?.data?.message ||
-        "Login failed ❌"
+        "Login failed"
       );
     }
   };
