@@ -78,8 +78,10 @@ router.get(
       }
 
       // FIND ASSIGNED TASKS
+      // Assignments store the worker's _id in `assignedWorker` (see
+      // /api/tasks/assign), so match by id — not by name.
       const complaints = await Complaint.find({
-        assignedWorker: worker.name,
+        assignedWorker: String(worker._id),
       }).sort({ createdAt: -1 });
 
       res.status(200).json(complaints);
