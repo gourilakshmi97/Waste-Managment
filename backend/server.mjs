@@ -18,20 +18,27 @@ const app = express();
 
 // Images are uploaded as multipart/form-data (handled by multer), so the JSON
 // body parser only handles small request bodies and uses its default limit.
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Change these lines:
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve uploaded files, e.g. GET /uploads/complaints/<file>.jpg
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+//app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const allowedOrigins = [
-  "http://localhost:5173", 
   "https://smart-waste-management-1b4b0.web.app"
 ];
 
-// Temporarily update middleware in server.mjs
 app.use(cors({
-  origin: "*", // Allow everything
+  origin: function (origin, callback) {
+    // This allows requests from your frontend AND allows tools like Postman 
+    // or direct requests (which don't have an "origin" header)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 // ROUTES
@@ -47,10 +54,13 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 mongoose.connect(process.env.MONGO_URI)
+
   .then(() => {
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on ${PORT}`);
+      // Add this to debug
+      console.log("Attempting to connect to MongoDB with URI length:", process.env.MONGO_URI ? process.env.MONGO_URI.length : "UNDEFINED");
     });
 
   })
