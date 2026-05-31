@@ -32,7 +32,7 @@ import {
 } from "@mui/material";
 
 import Grid from "@mui/material/Grid";
-
+import LogoutIcon from "@mui/icons-material/Logout";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -75,7 +75,10 @@ const [selectedWorker, setSelectedWorker] = useState("");
   }, []);
 
   // ================= FETCH WORKERS =================
-
+const handleLogout = () => {
+  localStorage.clear();
+  navigate("/login");
+};
 const handleAssignSubmit = async () => {
   try {
     if (!selectedWorker) {
@@ -221,7 +224,6 @@ const handleDelete = async (id) => {
                 right: -100,
               }}
             />
-
             <Stack
               direction="row"
               spacing={3}
@@ -241,16 +243,11 @@ const handleDelete = async (id) => {
                     color: "#16a34a",
                   }}
                 >
-                  <RecyclingIcon
-                    sx={{ fontSize: 42 }}
-                  />
+                  <RecyclingIcon sx={{ fontSize: 42 }} />
                 </Avatar>
 
                 <Box>
-                  <Typography
-                    variant="h3"
-                    fontWeight="bold"
-                  >
+                  <Typography variant="h3" fontWeight="bold">
                     EcoClean Admin
                   </Typography>
 
@@ -262,22 +259,35 @@ const handleDelete = async (id) => {
                   </Typography>
                 </Box>
               </Stack>
+              <Stack direction="row" spacing={2}>
+                <IconButton
+                  onClick={fetchDashboardData}
+                  sx={{
+                    bgcolor: "rgba(255,255,255,0.2)",
+                    color: "white",
+                  }}
+                >
+                  <RefreshIcon />
+                </IconButton>
 
-              <IconButton
-                onClick={fetchDashboardData}
-                sx={{
-                  bgcolor:
-                    "rgba(255,255,255,0.2)",
-                  color: "white",
-
-                  "&:hover": {
-                    bgcolor:
-                      "rgba(255,255,255,0.3)",
-                  },
-                }}
-              >
-                <RefreshIcon />
-              </IconButton>
+                <Button
+                    variant="contained"
+                    startIcon={<LogoutIcon />}
+                    onClick={handleLogout}
+                    sx={{
+                      bgcolor: "white",
+                      color: "#166534",
+                      fontWeight: "bold",
+                      borderRadius: 3,
+                      px: 3,
+                      "&:hover": {
+                        bgcolor: "#f0fdf4",
+                      },
+                    }}
+                  >
+                    Logout
+                  </Button>
+              </Stack>
             </Stack>
           </Paper>
         </Fade>
@@ -462,8 +472,7 @@ const handleDelete = async (id) => {
                             : "text.secondary"
                         }
                       >
-                        {item.assignedWorker ||
-                          "Unassigned"}
+                        {item.assignedWorker?.name || "Unassigned"}
                       </Typography>
                     </TableCell>
 

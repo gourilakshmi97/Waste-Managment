@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import API from "../../services/api";
 import {
@@ -36,7 +38,7 @@ import { resolveImageUrl } from "../../utils/imageUrl";
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 export default function WorkerDashboard() {
-
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -50,7 +52,10 @@ export default function WorkerDashboard() {
 
   const [uploadPreview, setUploadPreview] =
     useState("");
-
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
   const [uploadProgress, setUploadProgress] =
     useState(0);
 
@@ -285,22 +290,37 @@ export default function WorkerDashboard() {
 
             </Box>
 
-            <IconButton
-              onClick={fetchWorkerTasks}
-              sx={{
-                bgcolor:
-                  "rgba(255,255,255,0.15)",
+            <Stack direction="row" spacing={2}>
+              <IconButton
+                onClick={fetchWorkerTasks}
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.15)",
+                  color: "white",
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,0.25)",
+                  },
+                }}
+              >
+                <RefreshIcon />
+              </IconButton>
 
-                color: "white",
-
-                "&:hover": {
-                  bgcolor:
-                    "rgba(255,255,255,0.25)",
-                },
-              }}
-            >
-              <RefreshIcon />
-            </IconButton>
+              <Button
+                variant="contained"
+                startIcon={<LogoutIcon />}
+                onClick={handleLogout}
+                sx={{
+                  bgcolor: "white",
+                  color: "#166534",
+                  fontWeight: "bold",
+                  borderRadius: 3,
+                  "&:hover": {
+                    bgcolor: "#f0fdf4",
+                  },
+                }}
+              >
+                Logout
+              </Button>
+            </Stack>
 
           </Box>
 

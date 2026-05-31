@@ -6,7 +6,8 @@ const router = express.Router();
 
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const complaints = await Complaint.find();
+    const complaints = await Complaint.find()
+  .populate("assignedWorker", "name");
 
     const metrics = {
       total: complaints.length,
