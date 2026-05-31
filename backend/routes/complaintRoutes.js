@@ -3,14 +3,13 @@ import mongoose from "mongoose";
 
 import Complaint from "../models/Complaint.mjs";
 import User from "../models/User.js";
-
+import { uploadToGCS } from "../services/gcsService.js";
 import authMiddleware from "../middleware/authMiddleware.js";
-import {
-  uploadComplaintImage,
-  complaintImagePath,
-} from "../middleware/uploadMiddleware.js";
+
+import { uploadComplaintImage } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
+// ... the rest of your code ...
 
 
 // ================= HELPER =================
@@ -152,158 +151,70 @@ router.get("/:id", async (req, res) => {
 
 
 // ================= CREATE COMPLAINT =================
-router.post(
-  "/",
-  authMiddleware,
-  uploadComplaintImage,
-  async (req, res) => {
-    try {
+// ================= CREATE COMPLAINT =================
+router.post("/", authMiddleware, uploadComplaintImage, async (req, res) => {
+  console.log("Files:", req.file);
+  console.log("Body:", req.body);
 
-      const userId = getUserId(req);
+  try {
+    const userId = getUserId(req);
+    const { title, description, location, latitude, longitude } = req.body || {};
 
-      const {
-        title,
-        description,
-        location,
-        latitude,
-        longitude,
-      } = req.body || {};
-
-      // VALIDATION
-      if (!title || !description || !location) {
-        return res.status(400).json({
-          message:
-            "Title, description and location required",
-        });
-      }
-
-      // Store the uploaded file's public path, not base64 data.
-      const imageUrl = req.file
-        ? complaintImagePath(req.file.filename)
-        : "";
-
-      const complaint = await Complaint.create({
-        userId,
-
-        title: title.trim(),
-
-        description: description.trim(),
-
-        location,
-
-        imageUrl,
-
-        latitude: latitude
-          ? Number(latitude)
-          : null,
-
-        longitude: longitude
-          ? Number(longitude)
-          : null,
-
-        status: "Pending",
-
-        assignedWorker: "",
-      });
-
-      res.status(201).json(complaint);
-
-    } catch (err) {
-
-      console.error(err);
-
-      res.status(500).json({
-        message: err.message,
-      });
+    if (!title || !description) {
+      return res.status(400).json({ message: "Title and description are required fields." });
     }
-  }
-);
 
+    let imageUrl = "";
+    if (req.file) {
+      imageUrl = await uploadToGCS(req.file);
+    }
+
+    const complaint = await Complaint.create({
+      userId,
+      title: title.trim(),
+      description: description.trim(),
+      location,
+      imageUrl,
+      latitude: latitude ? Number(latitude) : null,
+      longitude: longitude ? Number(longitude) : null,
+      status: "Pending",
+      assignedWorker: "",
+    });
+
+    res.status(201).json(complaint);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+}); // <--- Added this missing closing brace
 
 // ================= UPDATE COMPLAINT =================
-router.patch(
-  "/:id",
-  authMiddleware,
-  uploadComplaintImage,
-  async (req, res) => {
-    try {
+router.patch("/:id", authMiddleware, uploadComplaintImage, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const updateFields = {};
 
-      // Only update fields that were actually sent, so a worker submitting
-      // proof (status + image) doesn't wipe assignedWorker, and vice versa.
-      const body = req.body || {};
-      const updateFields = {};
+    if (body.status !== undefined) updateFields.status = body.status;
+    if (body.assignedWorker !== undefined) updateFields.assignedWorker = body.assignedWorker;
 
-      if (body.status !== undefined) {
-        updateFields.status = body.status;
-      }
-
-      if (body.assignedWorker !== undefined) {
-        updateFields.assignedWorker = body.assignedWorker;
-      }
-
-      // Worker restoration-proof image (multipart upload).
-      if (req.file) {
-        updateFields.imageUrl = complaintImagePath(req.file.filename);
-      }
-
-      const updatedComplaint =
-        await Complaint.findByIdAndUpdate(
-          req.params.id,
-          { $set: updateFields },
-          { new: true }
-        );
-
-      if (!updatedComplaint) {
-        return res.status(404).json({
-          message: "Complaint not found",
-        });
-      }
-
-      res.status(200).json(updatedComplaint);
-
-    } catch (err) {
-
-      console.error(err);
-
-      res.status(500).json({
-        message: err.message,
-      });
+    if (req.file) {
+      updateFields.imageUrl = await uploadToGCS(req.file);
     }
-  }
-);
 
+    const updatedComplaint = await Complaint.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateFields },
+      { new: true }
+    );
 
-// ================= DELETE COMPLAINT =================
-router.delete(
-  "/:id",
-  authMiddleware,
-  async (req, res) => {
-    try {
-
-      const deleted =
-        await Complaint.findByIdAndDelete(
-          req.params.id
-        );
-
-      if (!deleted) {
-        return res.status(404).json({
-          message: "Complaint not found",
-        });
-      }
-
-      res.status(200).json({
-        message: "Deleted successfully",
-      });
-
-    } catch (err) {
-
-      console.error(err);
-
-      res.status(500).json({
-        message: err.message,
-      });
+    if (!updatedComplaint) {
+      return res.status(404).json({ message: "Complaint not found" });
     }
-  }
-);
 
+    res.status(200).json(updatedComplaint);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+}); // <--- Added this missing closing brace
 export default router;
