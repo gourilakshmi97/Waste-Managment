@@ -26,13 +26,19 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 //app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const allowedOrigins = [
-  "http://localhost:5173", 
   "https://smart-waste-management-1b4b0.web.app"
 ];
 
-// Temporarily update middleware in server.mjs
 app.use(cors({
-  origin: "*", // Allow everything
+  origin: function (origin, callback) {
+    // This allows requests from your frontend AND allows tools like Postman 
+    // or direct requests (which don't have an "origin" header)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 // ROUTES

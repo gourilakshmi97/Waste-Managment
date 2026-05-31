@@ -152,41 +152,78 @@ router.get("/:id", async (req, res) => {
 
 // ================= CREATE COMPLAINT =================
 // ================= CREATE COMPLAINT =================
-router.post("/", authMiddleware, uploadComplaintImage, async (req, res) => {
-  console.log("Files:", req.file);
-  console.log("Body:", req.body);
+router.post(
+  "/",
+  authMiddleware,
+  uploadComplaintImage,
+  async (req, res) => {
+    try {
+      console.log("File:", req.file);
+      console.log("Body:", req.body);
 
-  try {
-    const userId = getUserId(req);
-    const { title, description, location, latitude, longitude } = req.body || {};
+      const userId = getUserId(req);
 
-    if (!title || !description) {
-      return res.status(400).json({ message: "Title and description are required fields." });
+      const {
+        title,
+        description,
+        location,
+        latitude,
+        longitude,
+      } = req.body;
+
+      if (!title || !description) {
+        return res.status(400).json({
+          message: "Title and description are required",
+        });
+      }
+
+      let imageUrl = "";
+
+      if (req.file) {
+        try {
+          imageUrl = await uploadToGCS(req.file);
+        } catch (uploadError) {
+          console.error(
+            "Image Upload Failed:",
+            uploadError
+          );
+
+          return res.status(500).json({
+            message:
+              "Failed to upload image to Google Cloud Storage",
+            error: uploadError.message,
+          });
+        }
+      }
+
+      const complaint = await Complaint.create({
+        userId,
+        title: title.trim(),
+        description: description.trim(),
+        location,
+        imageUrl,
+        latitude: latitude
+          ? Number(latitude)
+          : null,
+        longitude: longitude
+          ? Number(longitude)
+          : null,
+        status: "Pending",
+        assignedWorker: "",
+      });
+
+      res.status(201).json(complaint);
+
+    } catch (err) {
+
+      console.error(err);
+
+      res.status(500).json({
+        message: err.message,
+      });
     }
-
-    let imageUrl = "";
-    if (req.file) {
-      imageUrl = await uploadToGCS(req.file);
-    }
-
-    const complaint = await Complaint.create({
-      userId,
-      title: title.trim(),
-      description: description.trim(),
-      location,
-      imageUrl,
-      latitude: latitude ? Number(latitude) : null,
-      longitude: longitude ? Number(longitude) : null,
-      status: "Pending",
-      assignedWorker: "",
-    });
-
-    res.status(201).json(complaint);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: err.message });
   }
-}); // <--- Added this missing closing brace
+);
 
 // ================= UPDATE COMPLAINT =================
 router.patch("/:id", authMiddleware, uploadComplaintImage, async (req, res) => {
