@@ -85,38 +85,32 @@ const handleAssignSubmit = async () => {
       toast.warning("Please select a worker");
       return;
     }
-    if (!assigningItem?._id) {
-      toast.error("Complaint not found");
-      return;
-    }
+    
+    // Find the actual worker object
+    const selectedWorkerObj = workers.find((w) => w._id === selectedWorker);
 
-    // 1. Perform the Network Request
     await API.post("/tasks/assign", {
       complaintId: assigningItem._id,
       workerId: selectedWorker,
     });
 
-    // 2. Perform the Local UI Update
     setComplaints((prev) =>
       prev.map((item) =>
         item._id === assigningItem._id
           ? {
               ...item,
               status: "In Progress",
-              assignedWorker:
-                workers.find((w) => w._id === selectedWorker)?.name || "Assigned",
+              // Store the object instead of just the name string
+              assignedWorker: selectedWorkerObj, 
             }
           : item
       )
     );
 
     toast.success("Worker assigned successfully");
-
-    // 3. Reset state and refresh data
     setAssigningItem(null);
     setSelectedWorker("");
-    fetchDashboardData();
-    
+    // fetchDashboardData(); // This is good, but now your local state is consistent
   } catch (err) {
     console.error(err);
     toast.error(err.response?.data?.message || "Assignment failed");
@@ -462,17 +456,10 @@ const handleDelete = async (id) => {
                         )}
                       />
                     </TableCell>
-
                     <TableCell>
-                      <Typography
-                        fontWeight="medium"
-                        color={
-                          item.assignedWorker
-                            ? "success.main"
-                            : "text.secondary"
-                        }
-                      >
-                        {item.assignedWorker?.name || "Unassigned"}
+                      <Typography fontWeight="medium" color={item.assignedWorker ? "success.main" : "text.secondary"}>
+                        {/* Look up the name from the workers list using the ID */}
+                        {workers.find(w => w._id === (item.assignedWorker?._id || item.assignedWorker))?.name || "Unassigned"}
                       </Typography>
                     </TableCell>
 
